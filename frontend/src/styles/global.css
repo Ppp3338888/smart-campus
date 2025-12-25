@@ -1,0 +1,157 @@
+/* ===== Reset ===== */
+* {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    color: #1f2937;
+  }
+  
+  /* ===== Navbar ===== */
+  nav {
+    background: linear-gradient(135deg, #1a73e8, #1558c0);
+    color: white;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  
+  nav h3 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  
+  nav a {
+    color: white;
+    margin-left: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+  }
+  
+  nav a:hover {
+    opacity: 0.8;
+  }
+  
+  nav .danger {
+    background: #ef4444;
+    padding: 8px 14px;
+    border-radius: 999px;
+  }
+  
+  /* ===== Layout ===== */
+  .container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 24px;
+  }
+  
+  /* ===== Cards ===== */
+  .card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+  }
+  
+  /* ===== Issue Badge ===== */
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .badge.Medium {
+    background: #fff7ed;
+    color: #c2410c;
+  }
+  
+  .badge.Low {
+    background: #ecfdf5;
+    color: #047857;
+  }
+  
+  /* ===== Inputs ===== */
+  input,
+  textarea {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+  }
+  
+  /* ===== Buttons ===== */
+  button {
+    background: linear-gradient(135deg, #1a73e8, #1558c0);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(26, 115, 232, 0.35);
+  }
+  
+  /* ===== Centered Login ===== */
+  .center {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* ===== Emergency ===== */
+  .emergency {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    color: white;
+    height: 100vh;
+    text-align: center;
+    padding-top: 140px;
+  }
+  
+  .emergency h1 {
+    font-size: 44px;
+    margin-bottom: 12px;
+  }
+  
+  .emergency h2 {
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
+  
+  .emergency p {
+    font-size: 18px;
+    opacity: 0.9;
+  }
+  
