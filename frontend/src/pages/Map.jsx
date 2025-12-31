@@ -18,7 +18,7 @@ export default function MapPage() {
     });
 
     useEffect(() => {
-        fetch("http://localhost:5001/api/issues")
+        fetch("https://smart-campus-mo10.onrender.com/api/issues")
             .then(res => res.json())
             .then(setIssues);
     }, []);

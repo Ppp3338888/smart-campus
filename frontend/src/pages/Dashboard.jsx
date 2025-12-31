@@ -12,7 +12,8 @@ const deleteIssue = async id => {
   const ok = window.confirm("Are you sure you want to delete this issue?");
   if (!ok) return;
 
-  await fetch(`http://localhost:5001/api/issues/${id}`, {
+  await fetch(`https://smart-campus-mo10.onrender.com
+/api/issues/${id}`, {
     method: "DELETE"
   });
 
@@ -41,7 +42,7 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/issues")
+    fetch("https://smart-campus-mo10.onrender.com/api/issues")
       .then(res => res.json())
       .then(setIssues);
   }, []);
