@@ -4,8 +4,17 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
 from datetime import datetime
-cred = credentials.Certificate("firebase-key.json")
+import os
+import json
+from dotenv import load_dotenv
+load_dotenv()
+
+firebase_key = json.loads(os.environ["FIREBASE_KEY"])
+cred = credentials.Certificate(firebase_key)
 firebase_admin.initialize_app(cred)
+
+# cred = credentials.Certificate("firebase-key.json")
+# firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
