@@ -35,7 +35,7 @@ export default function Report() {
   const submit = async e => {
     e.preventDefault();
 
-    await fetch("http://localhost:5001/api/issues", {
+    await fetch("https://smart-campus-mo10.onrender.com/api/issues", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form)
