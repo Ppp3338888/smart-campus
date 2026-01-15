@@ -19,8 +19,11 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    supports_credentials=False
+)
 
 
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
