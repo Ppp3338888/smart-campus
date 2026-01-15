@@ -49,11 +49,9 @@ export default function Emergency() {
             </div>
 
             <div style={styles.alertInfo}>
-<<<<<<< HEAD
-              <strong>⚠️ Avoid Block A - North Wing</strong>
-=======
+
               <strong>⚠️ Avoid SAC</strong>
->>>>>>> vercel/main
+
               <p>
                 Fire alarm triggered 3 minutes ago. Automated sprinkler system active.
               </p>
@@ -226,8 +224,6 @@ const styles = {
     borderRadius: "10px",
     fontSize: "14px"
   }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> vercel/main
+
+
