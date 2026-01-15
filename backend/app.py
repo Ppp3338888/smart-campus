@@ -156,8 +156,10 @@ def health_summary():
     "windowDays": 3
     })
 
-@app.route("/api/health/chat", methods=["POST"])
+@app.route("/api/health/chat", methods=["POST", "OPTIONS"])
 def health_chat():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
     data = request.json
 
     user_message = data.get("message", "")
