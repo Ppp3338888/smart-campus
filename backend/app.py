@@ -1,47 +1,51 @@
-from flask import Flask, jsonify,request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
-import uuid
-from datetime import datetime
-import os
-import json
+from datetime import datetime, timedelta, timezone
+import os, json
+import google.generativeai as genai
 from dotenv import load_dotenv
+
 load_dotenv()
 
+# 🔐 Firebase init
 firebase_key = json.loads(os.environ["FIREBASE_KEY"])
 cred = credentials.Certificate(firebase_key)
-firebase_admin.initialize_app(cred)
 
-# cred = credentials.Certificate("firebase-key.json")
-# firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
 app = Flask(__name__)
-CORS(app)  # allows React (localhost:5173) to talk to Flask
+CORS(app)
 
+
+
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 @app.route("/api/issues", methods=["GET"])
 def get_issues():
     issues_ref = db.collection("issues").stream()
-
     issues = []
+
     for doc in issues_ref:
         issue = doc.to_dict()
         issue["id"] = doc.id
+
+        issue["createdAt"] = issue["createdAt"].isoformat()
+
+
         issues.append(issue)
 
     return jsonify(issues)
 
 
-
 @app.route("/api/issues", methods=["POST"])
 def create_issue():
-    data = request.get_json(silent=True)
-
-    if not data:
-        return jsonify({"error": "Invalid or missing JSON"}), 400
+    data = request.get_json()
 
     issue = {
         "title": data["title"],
@@ -52,24 +56,158 @@ def create_issue():
         "category": data["category"],
         "priority": data["priority"],
         "status": "In Progress",
-        "createdAt": datetime.utcnow().isoformat()
+        "createdAt": firestore.SERVER_TIMESTAMP  # ✅ FIXED
     }
 
     db.collection("issues").add(issue)
     return jsonify({"message": "Issue created"}), 201
 
+
 @app.route("/api/issues/<issue_id>", methods=["DELETE"])
 def delete_issue(issue_id):
-    try:
-        db.collection("issues").document(issue_id).delete()
-        return jsonify({"message": "Issue deleted"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    db.collection("issues").document(issue_id).delete()
+    return jsonify({"message": "Issue deleted"}), 200
+
+
+
+@app.route("/api/health/report", methods=["POST"])
+def report_health():
+    data = request.get_json()
+
+    report = {
+        "illnessType": data["illnessType"],     
+        "symptoms": data.get("symptoms", []),      
+        "severity": data.get("severity", "Mild"), 
+        "location": data.get("location", "Unknown"),
+        "reportedAt": firestore.SERVER_TIMESTAMP  
+    }
+
+    db.collection("health_reports").add(report)
+    return jsonify({"message": "Health report submitted"}), 201
+
+
+@app.route("/api/health/summary", methods=["GET"])
+def health_summary():
+    TOTAL_CAMPUS_POPULATION = 1000  # configurable
+
+    now = datetime.now(timezone.utc)
+    three_days_ago = now - timedelta(days=3)
+
+    # 🔑 Only last 3 days
+    reports_ref = (
+        db.collection("health_reports")
+        .where("reportedAt", ">=", three_days_ago)
+        .stream()
+    )
+
+    illness_count = {}
+    recent_reports = 0
+
+    for doc in reports_ref:
+        data = doc.to_dict()
+        recent_reports += 1
+
+        illness = data.get("illnessType", "Other")
+        illness_count[illness] = illness_count.get(illness, 0) + 1
+
+    ill_percentage = round(
+        (recent_reports / TOTAL_CAMPUS_POPULATION) * 100, 2
+    ) if TOTAL_CAMPUS_POPULATION else 0
+
+    # --- OUTBREAK DETECTION LOGIC ---
+
+    MIN_CASES = 3
+
+    DOMINANCE_THRESHOLDS = {
+        "Viral": 0.4,
+        "Vector-borne": 0.25,
+        "Respiratory": 0.4,
+        "Gastrointestinal": 0.3,
+        "Other": 0.5
+    }
+
+    outbreak = None
+    outbreak_stats = None
+
+    for illness, count in illness_count.items():
+        if count < MIN_CASES:
+            continue
+
+        dominance = count / recent_reports if recent_reports else 0
+        threshold = DOMINANCE_THRESHOLDS.get(illness, 0.5)
+
+        if dominance >= threshold:
+            outbreak = illness
+            outbreak_stats = {
+                "cases": count,
+                "dominance": round(dominance * 100, 1)
+            }
+            break
+
+    return jsonify({
+    "recentReported": recent_reports,
+    "illPercentage": ill_percentage,
+    "distribution": illness_count,
+    "outbreakAlert": outbreak,
+    "outbreakStats": outbreak_stats,
+    "windowDays": 3
+    })
+
+@app.route("/api/health/chat", methods=["POST"])
+def health_chat():
+    data = request.json
+
+    user_message = data.get("message", "")
+    chat_history = data.get("chatHistory", [])
+    form_context = data.get("formContext", {})
+
+    # 🔐 SYSTEM GUARDRAILS
+    system_prompt = """
+You are a world class doctor 
+specializing in health and safety. Provide empathetic, accurate, and concise advice based on user inputs about their health symptoms and conditions. 
+Use the provided form context to tailor your responses.
+Keep responses under 100 words.
+Anything outside health advice is out of scope—politely decline such requests.
+"""
+
+    # 🧾 FORM CONTEXT
+    form_prompt = f"""
+Current form state:
+- Illness type: {form_context.get("illnessType", "Not selected")}
+- Severity: {form_context.get("severity", "Not selected")}
+- Symptoms: {", ".join(form_context.get("symptoms", [])) or "None"}
+- Location: {form_context.get("location", "Not specified")}
+"""
+
+    # 🗣️ CHAT HISTORY (LAST 6 MESSAGES ONLY)
+    history_prompt = ""
+    for msg in chat_history[-6:]:
+        role = "User" if msg["role"] == "user" else "Assistant"
+        history_prompt += f"{role}: {msg['text']}\n"
+
+    final_prompt = f"""
+{system_prompt}
+
+{form_prompt}
+
+Conversation so far:
+{history_prompt}
+
+User: {user_message}
+Assistant:
+"""
+
+    response = model.generate_content(final_prompt)
+
+    return jsonify({
+        "reply": response.text.strip()
+    })
+
 
 @app.route("/api/health")
 def health():
     return jsonify({"status": "Backend running"})
 
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
-

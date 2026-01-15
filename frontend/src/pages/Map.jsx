@@ -18,7 +18,7 @@ export default function MapPage() {
     });
 
     useEffect(() => {
-        fetch("https://smart-campus-mo10.onrender.com/api/issues")
+        fetch(`${import.meta.env.VITE_API_BASE}/api/issues`)
             .then(res => res.json())
             .then(setIssues);
     }, []);

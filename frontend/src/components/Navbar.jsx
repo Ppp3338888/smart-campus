@@ -11,6 +11,7 @@ export default function Navbar() {
                 <Link to="/emergency" style={styles.link}>Emergency</Link>
                 <Link to="/report" style={styles.link}>＋ Report</Link>
                 <Link to="/map" style={styles.link}>Map</Link>
+                <Link to="/healthform   " style={styles.link}>Health Form</Link>
             </div>
         </nav>
     );
